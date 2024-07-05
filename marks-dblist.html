@@ -1,306 +1,381 @@
 <html>
-
-<head>
+  <head>
     <title>SECJ3483 - Project</title>
-    <link rel="stylesheet" href="https://www.w3schools.com/w3css/4/w3.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+    <link rel="stylesheet" href="https://www.w3schools.com/w3css/4/w3.css" />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css"
+    />
     <style>
-        i.fa {
-            cursor: pointer;
-        }
+      i.fa {
+        cursor: pointer;
+      }
     </style>
-</head>
+  </head>
 
-<body id="project">
+  <body id="project">
     <h2>WebTech Final Mark Data Entry</h2>
 
     <div class="w3-bar w3-grey">
-        <button class="w3-bar-item w3-button" onclick="location.href='marks-form.html';">Marks Entry Form</button>
-        <button class="w3-bar-item w3-button w3-black">Marks DB List</button>
+      <button
+        class="w3-bar-item w3-button"
+        onclick="location.href='marks-form.html';"
+      >
+        Marks Entry Form
+      </button>
+      <button class="w3-bar-item w3-button w3-black">Marks DB List</button>
     </div>
 
     <div v-show="show_List">
-        <table class="w3-table-all w3-small w3-hoverable">
-            <tr class="w3-blue">
-                <th>Name</th>
-                <th>Session</th>
-                <th class="numeric cw">Coursework (70%)</th>
-                <th class="numeric fe">Final Exam (30%)</th>
-                <th class="numeric total">Total</th>
-                <th class="grade">Grade</th>
-                <th>&nbsp;</th>
-            </tr>
-            <tr class="row_data w3-hover-khaki" v-for="(item, idx) in data">
-                <td class="text name">{{item.name}}</td>
-                <td class="text session">{{item.session}}</td>
-                <td class="numeric cw">{{item.cw}}</td>
-                <td class="numeric fe">{{item.fe}}</td>
-                <td class="numeric total">{{parseInt(item.cw) + parseInt(item.fe)}}</td>
-                <td class="grade">{{getGrade(parseInt(item.cw) + parseInt(item.fe))}}</td>
-                <td class="icon">
-                    <i class="fa fa-edit w3-large w3-text-blue" aria-hidden="true" title="Update"
-                        v-on:click="updateItem.idx=idx; dbUpdate(0)"></i>
-                    &nbsp;
-                    <i class="fa fa-circle-o-notch fa-spin w3-large w3-text-grey" aria-hidden="true"
-                        v-show="show_dbDeleteSpin[idx]"></i>
-                    &nbsp;
-                    <i class="fa fa-close w3-large w3-text-red" aria-hidden="true" title="Delete"
-                        v-show="show_dbDelete[idx]" v-on:click="dbDelete(idx)"></i>
-                </td>
-            </tr>
-            <tr id="row_avg" class="w3-orange">
-                <th colspan="2" style="text-align: center">AVERAGE</th>
-                <th id="avg_cw" class="numeric">{{avg.cw}}</th>
-                <th id="avg_fe" class="numeric">{{avg.fe}}</th>
-                <th id="avg_total" class="numeric">{{avg.total}}</th>
-                <th id="avg_grade" class="grade">{{avg.grade}}</th>
-                <th>
-                </th>
-            </tr>
-        </table>
+      <table class="w3-table-all w3-small w3-hoverable">
+        <tr class="w3-blue">
+          <th>Name</th>
+          <th>Session</th>
+          <th class="numeric cw">Coursework (70%)</th>
+          <th class="numeric fe">Final Exam (30%)</th>
+          <th class="numeric total">Total</th>
+          <th class="grade">Grade</th>
+          <th>&nbsp;</th>
+        </tr>
+        <tr class="row_data w3-hover-khaki" v-for="(item, idx) in data">
+          <td class="text name">{{item.name}}</td>
+          <td class="text session">{{item.session}}</td>
+          <td class="numeric cw">{{item.cw}}</td>
+          <td class="numeric fe">{{item.fe}}</td>
+          <td class="numeric total">
+            {{parseInt(item.cw) + parseInt(item.fe)}}
+          </td>
+          <td class="grade">
+            {{getGrade(parseInt(item.cw) + parseInt(item.fe))}}
+          </td>
+          <td class="icon">
+            <i
+              class="fa fa-edit w3-large w3-text-blue"
+              aria-hidden="true"
+              title="Update"
+              v-on:click="updateItem.idx=idx; dbUpdate(0)"
+            ></i>
+            &nbsp;
+            <i
+              class="fa fa-circle-o-notch fa-spin w3-large w3-text-grey"
+              aria-hidden="true"
+              v-show="show_dbDeleteSpin[idx]"
+            ></i>
+            &nbsp;
+            <i
+              class="fa fa-close w3-large w3-text-red"
+              aria-hidden="true"
+              title="Delete"
+              v-show="show_dbDelete[idx]"
+              v-on:click="dbDelete(idx)"
+            ></i>
+          </td>
+        </tr>
+        <tr id="row_avg" class="w3-orange">
+          <th colspan="2" style="text-align: center">AVERAGE</th>
+          <th id="avg_cw" class="numeric">{{avg.cw}}</th>
+          <th id="avg_fe" class="numeric">{{avg.fe}}</th>
+          <th id="avg_total" class="numeric">{{avg.total}}</th>
+          <th id="avg_grade" class="grade">{{avg.grade}}</th>
+          <th></th>
+        </tr>
+      </table>
     </div>
 
     <div v-show="show_updateForm">
-        <h3>Update mark info:</h3>
-        <table class="w3-table-all w3-small">
-            <tr class="w3-green">
-                <th>Name</th>
-                <th>Session</th>
-                <th>Coursework (70%)</th>
-                <th>Final Exam (30%)</th>
-                <th>&nbsp;</th>
-            </tr>
-            <tr>
-                <td>
-                    <input type="text" id="in_name" v-model="in_name" class="w3-input">
-                </td>
-                <td>
-                    <input type="text" v-model="in_session" class="w3-input numeric">
-                    <i class="w3-text-red w3-tiny errmsg_in">{{errmsg_session}}</i>
-                </td>
-                <td>
-                    <input type="text" v-model="in_cw" class="w3-input numeric">
-                    <i class="w3-text-red w3-tiny errmsg_in">{{errmsg_cw}}</i>
-                </td>
-                <td>
-                    <input type="text" v-model="in_fe" class="w3-input numeric">
-                    <i class="w3-text-red w3-tiny errmsg_in">{{errmsg_fe}}</i>
-                </td>
-                <td>
-                    <i class="fa fa-circle-o-notch fa-spin w3-large w3-text-grey" aria-hidden="true"
-                       v-show="show_updateSpin"></i>&nbsp;
-                    <button v-show="show_updateBtn" v-on:click="dbUpdate(1)">Update</button>
-                    <button v-on:click="dbUpdate(-1)">Cancel</button>
-                </td>
-            </tr>
-        </table>
+      <h3>Update mark info:</h3>
+      <table class="w3-table-all w3-small">
+        <tr class="w3-green">
+          <th>Name</th>
+          <th>Session</th>
+          <th>Coursework (70%)</th>
+          <th>Final Exam (30%)</th>
+          <th>&nbsp;</th>
+        </tr>
+        <tr>
+          <td>
+            <input
+              type="text"
+              id="in_name"
+              v-model="in_name"
+              class="w3-input"
+            />
+          </td>
+          <td>
+            <input type="text" v-model="in_session" class="w3-input numeric" />
+            <i class="w3-text-red w3-tiny errmsg_in">{{errmsg_session}}</i>
+          </td>
+          <td>
+            <input type="text" v-model="in_cw" class="w3-input numeric" />
+            <i class="w3-text-red w3-tiny errmsg_in">{{errmsg_cw}}</i>
+          </td>
+          <td>
+            <input type="text" v-model="in_fe" class="w3-input numeric" />
+            <i class="w3-text-red w3-tiny errmsg_in">{{errmsg_fe}}</i>
+          </td>
+          <td>
+            <i
+              class="fa fa-circle-o-notch fa-spin w3-large w3-text-grey"
+              aria-hidden="true"
+              v-show="show_updateSpin"
+            ></i
+            >&nbsp;
+            <button v-show="show_updateBtn" v-on:click="dbUpdate(1)">
+              Update
+            </button>
+            <button v-on:click="dbUpdate(-1)">Cancel</button>
+          </td>
+        </tr>
+      </table>
     </div>
     <pre>
-    Group Members:
-    1. ???
-    2. ???
-    3. ???
-    4. ???
-    5. ???
-    6. ???
+        Group Members:
+        1. MD ABU TALHA IBNA RIAZ HASSAN <i>(A20EC3022) </i> <b>(LEADER)</b>
+        2. Iftekhar Uddin Ahmed <i>(A20EC3016)</i>
+        3. Labib Hasan <i>(A20EC4079) </i>
+        4. A K M Shafin Alam <i>(A20EC4061) </i>
+        5. Islam Mahamudul <i>(A20EC4083) </i>
     </pre>
-</body>
-
+  </body>
 </html>
 
 <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
 <script>
-    const vueApp = Vue.createApp({
-        data() {
-            return {
-                show_List: true,
-                data: [],
-                show_dbDeleteSpin: [],
-                show_dbDelete: [],
-                avg: { 'cw': 0, 'fe': 0, 'total': 0, 'grade': 'E' },
+  const vueApp = Vue.createApp({
+    data() {
+      return {
+        show_List: true,
+        data: [],
+        show_dbDeleteSpin: [],
+        show_dbDelete: [],
+        avg: { cw: 0, fe: 0, total: 0, grade: "E" },
 
-                show_updateForm: false, show_updateBtn: true, show_updateSpin: false,
-                updateItem: { id: null, idx: null },
-                in_name: '???', in_session: '???', in_cw: 0, in_fe: 0,
-                errmsg_session: '', errmsg_cw: '', errmsg_fe: '',
-            }
-        },
+        show_updateForm: false,
+        show_updateBtn: true,
+        show_updateSpin: false,
+        updateItem: { id: null, idx: null },
+        in_name: "???",
+        in_session: "???",
+        in_cw: 0,
+        in_fe: 0,
+        errmsg_session: "",
+        errmsg_cw: "",
+        errmsg_fe: "",
+      };
+    },
 
-        watch: {
-            // always make student name in uppercase format
-            in_name(val) {
-                this.in_name = val.toUpperCase();
-            }
-        },
+    watch: {
+      // always make student name in uppercase format
+      in_name(val) {
+        this.in_name = val.toUpperCase();
+      },
+    },
 
-        methods: {
-            // Function to return grade based on total mark
-            // of coursework + final exam
-            getGrade(m) {
-                let marks = [90, 80, 75, 70, 65, 60, 55, 50, 45, 40, 35, 30, 0];
-                let grades = ['A+', 'A', 'A-', 'B+', 'B', 'B-', 'C+', 'C', 'C-', 'D+', 'D', 'D-', 'E'];
+    methods: {
+      // Function to return grade based on total mark
+      // of coursework + final exam
+      getGrade(m) {
+        let marks = [90, 80, 75, 70, 65, 60, 55, 50, 45, 40, 35, 30, 0];
+        let grades = [
+          "A+",
+          "A",
+          "A-",
+          "B+",
+          "B",
+          "B-",
+          "C+",
+          "C",
+          "C-",
+          "D+",
+          "D",
+          "D-",
+          "E",
+        ];
 
-                for (let idx = 0; idx < marks.length; idx++) {
-                    if (m >= marks[idx]) {
-                        return grades[idx];
-                    }
-                }
-
-                return "N/A";
-            },
-
-            // Calculate and set the average of coursework, final exam,
-            // total mark and grade.
-            calcAvg() {
-                let total_cw = 0, total_fe = 0, count = this.data.length;
-                for (let i = 0; i < count; i++) {
-                    total_cw += parseInt(this.data[i].cw);
-                    total_fe += parseInt(this.data[i].fe);
-                }
-                this.avg.cw = (total_cw / count).toFixed(2);
-                this.avg.fe = (total_fe / count).toFixed(2);
-                this.avg.total = (parseInt(this.avg.cw) + parseInt(this.avg.fe)).toFixed(2);
-                this.avg.grade = this.getGrade(parseInt(this.avg.total));
-            },
-
-            setInput(name, session, cw, fe) {
-                this.in_name = name;
-                this.in_session = session;
-                this.in_cw = cw;
-                this.in_fe = fe;
-            },
-
-            // Function to validate input by user.
-            validateInput() {
-                this.errmsg_session = "";
-                this.errmsg_cw = "";
-                this.errmsg_fe = "";
-
-                let valid_input = 1;
-
-                if (this.in_name == "" || this.in_session == "" || this.in_cw == "" || this.in_fe == "") {
-                    alert("Please complete all input fields!");
-                    valid_input = 0;
-                } else {
-                    if (this.in_fe > 30 || this.in_fe < 0 || isNaN(this.in_fe)) {
-                        this.errmsg_fe = "Invalid value range of final exam mark!";
-                        valid_input = 0;
-                    }
-
-                    if (this.in_cw > 70 || this.in_cw < 0 || isNaN(this.in_cw)) {
-                        this.errmsg_cw = "Invalid value range of coursework mark!";
-                        valid_input = 0;
-                    }
-
-                    if (!this.in_session.match(/^\d{8}\-\d{1}$/g)) {
-                        this.errmsg_session = "Invalid input pattern of session field!";
-                        valid_input = 0;
-                    }
-                }
-
-                return valid_input;
-            },
-
-            // Function to read and list mark info from DB table
-            dbRead() {
-                fetch('http://localhost/webtech/project/dbread.php')
-                    .then(response => response.json())
-                    .then(data => {
-                        if (data.status === 'success') {
-                            this.data = data.data;
-                            this.calcAvg();
-                            this.show_dbDelete = new Array(this.data.length).fill(true);
-                        } else {
-                            console.error('Error fetching data:', data.error_msg);
-                        }
-                    })
-                    .catch(error => {
-                        console.error('Error:', error);
-                    });
-            },
-
-            // Function to update mark info
-            dbUpdate(phase) {
-                let idx = this.updateItem.idx;
-
-                if (phase == 0) {
-                    this.show_List = false;
-                    this.show_updateForm = true;
-                    this.setInput(this.data[idx].name, this.data[idx].session, this.data[idx].cw, this.data[idx].fe);
-                    this.updateItem.id = this.data[idx].id;
-                } else {
-                    if (phase == 1) {
-                        if (this.validateInput()) {
-                            this.show_updateSpin = true;
-                            this.show_updateBtn = false;
-
-                            const updateData = [{
-                                id: this.updateItem.id,
-                                name: this.in_name,
-                                session: this.in_session,
-                                cw: this.in_cw,
-                                fe: this.in_fe
-                            }];
-
-                            fetch(`http://localhost/webtech/project/dbupdate.php?jsonStr=${encodeURIComponent(JSON.stringify(updateData))}`)
-                                .then(response => response.json())
-                                .then(data => {
-                                    if (data.status === 'success') {
-                                        this.data[idx].name = this.in_name;
-                                        this.data[idx].session = this.in_session;
-                                        this.data[idx].cw = this.in_cw;
-                                        this.data[idx].fe = this.in_fe;
-                                        this.calcAvg();
-                                    } else {
-                                        console.error('Error updating data:', data.error_msg);
-                                    }
-                                    this.show_updateSpin = false;
-                                    this.show_updateBtn = true;
-                                    this.show_List = true;
-                                    this.show_updateForm = false;
-                                })
-                                .catch(error => {
-                                    console.error('Error:', error);
-                                    this.show_updateSpin = false;
-                                    this.show_updateBtn = true;
-                                });
-                        }
-                    } else {
-                        this.show_List = true;
-                        this.show_updateForm = false;
-                    }
-                }
-            },
-
-            // function to delete mark info from DB table
-            dbDelete(idx) {
-                this.show_dbDeleteSpin[idx] = true;
-                this.show_dbDelete[idx] = false;
-
-                const deleteData = [{ id: this.data[idx].id }];
-                fetch(`http://localhost/webtech/project/dbdelete.php?jsonStr=${encodeURIComponent(JSON.stringify(deleteData))}`)
-                    .then(response => response.json())
-                    .then(data => {
-                        if (data.status === 'success') {
-                            this.data.splice(idx, 1);
-                            this.show_dbDelete.splice(idx, 1); // Remove the corresponding delete icon state
-                            this.calcAvg();
-                        } else {
-                            console.error('Error deleting data:', data.error_msg);
-                        }
-                        this.show_dbDeleteSpin[idx] = false;
-                    })
-                    .catch(error => {
-                        console.error('Error:', error);
-                        this.show_dbDeleteSpin[idx] = false;
-                    });
-            }
-        },
-        mounted() {
-            this.dbRead();
+        for (let idx = 0; idx < marks.length; idx++) {
+          if (m >= marks[idx]) {
+            return grades[idx];
+          }
         }
-    });
 
-    vueApp.mount("#project");
+        return "N/A";
+      },
 
+      // Calculate and set the average of coursework, final exam,
+      // total mark and grade.
+      calcAvg() {
+        let total_cw = 0,
+          total_fe = 0,
+          count = this.data.length;
+        for (let i = 0; i < count; i++) {
+          total_cw += parseInt(this.data[i].cw);
+          total_fe += parseInt(this.data[i].fe);
+        }
+        this.avg.cw = (total_cw / count).toFixed(2);
+        this.avg.fe = (total_fe / count).toFixed(2);
+        this.avg.total = (
+          parseInt(this.avg.cw) + parseInt(this.avg.fe)
+        ).toFixed(2);
+        this.avg.grade = this.getGrade(parseInt(this.avg.total));
+      },
+
+      setInput(name, session, cw, fe) {
+        this.in_name = name;
+        this.in_session = session;
+        this.in_cw = cw;
+        this.in_fe = fe;
+      },
+
+      // Function to validate input by user.
+      validateInput() {
+        this.errmsg_session = "";
+        this.errmsg_cw = "";
+        this.errmsg_fe = "";
+
+        let valid_input = 1;
+
+        if (
+          this.in_name == "" ||
+          this.in_session == "" ||
+          this.in_cw == "" ||
+          this.in_fe == ""
+        ) {
+          alert("Please complete all input fields!");
+          valid_input = 0;
+        } else {
+          if (this.in_fe > 30 || this.in_fe < 0 || isNaN(this.in_fe)) {
+            this.errmsg_fe = "Invalid value range of final exam mark!";
+            valid_input = 0;
+          }
+
+          if (this.in_cw > 70 || this.in_cw < 0 || isNaN(this.in_cw)) {
+            this.errmsg_cw = "Invalid value range of coursework mark!";
+            valid_input = 0;
+          }
+
+          if (!this.in_session.match(/^\d{8}\-\d{1}$/g)) {
+            this.errmsg_session = "Invalid input pattern of session field!";
+            valid_input = 0;
+          }
+        }
+
+        return valid_input;
+      },
+
+      // Function to read and list mark info from DB table
+      dbRead() {
+        fetch("http://localhost/webtech/project/dbread.php")
+          .then((response) => response.json())
+          .then((data) => {
+            if (data.status === "success") {
+              this.data = data.data;
+              this.calcAvg();
+              this.show_dbDelete = new Array(this.data.length).fill(true);
+            } else {
+              console.error("Error fetching data:", data.error_msg);
+            }
+          })
+          .catch((error) => {
+            console.error("Error:", error);
+          });
+      },
+
+      // Function to update mark info
+      dbUpdate(phase) {
+        let idx = this.updateItem.idx;
+
+        if (phase == 0) {
+          this.show_List = false;
+          this.show_updateForm = true;
+          this.setInput(
+            this.data[idx].name,
+            this.data[idx].session,
+            this.data[idx].cw,
+            this.data[idx].fe
+          );
+          this.updateItem.id = this.data[idx].id;
+        } else {
+          if (phase == 1) {
+            if (this.validateInput()) {
+              this.show_updateSpin = true;
+              this.show_updateBtn = false;
+
+              const updateData = [
+                {
+                  id: this.updateItem.id,
+                  name: this.in_name,
+                  session: this.in_session,
+                  cw: this.in_cw,
+                  fe: this.in_fe,
+                },
+              ];
+
+              fetch(
+                `http://localhost/webtech/project/dbupdate.php?jsonStr=${encodeURIComponent(
+                  JSON.stringify(updateData)
+                )}`
+              )
+                .then((response) => response.json())
+                .then((data) => {
+                  if (data.status === "success") {
+                    this.data[idx].name = this.in_name;
+                    this.data[idx].session = this.in_session;
+                    this.data[idx].cw = this.in_cw;
+                    this.data[idx].fe = this.in_fe;
+                    this.calcAvg();
+                  } else {
+                    console.error("Error updating data:", data.error_msg);
+                  }
+                  this.show_updateSpin = false;
+                  this.show_updateBtn = true;
+                  this.show_List = true;
+                  this.show_updateForm = false;
+                })
+                .catch((error) => {
+                  console.error("Error:", error);
+                  this.show_updateSpin = false;
+                  this.show_updateBtn = true;
+                });
+            }
+          } else {
+            this.show_List = true;
+            this.show_updateForm = false;
+          }
+        }
+      },
+
+      // function to delete mark info from DB table
+      dbDelete(idx) {
+        this.show_dbDeleteSpin[idx] = true;
+        this.show_dbDelete[idx] = false;
+
+        const deleteData = [{ id: this.data[idx].id }];
+        fetch(
+          `http://localhost/webtech/project/dbdelete.php?jsonStr=${encodeURIComponent(
+            JSON.stringify(deleteData)
+          )}`
+        )
+          .then((response) => response.json())
+          .then((data) => {
+            if (data.status === "success") {
+              this.data.splice(idx, 1);
+              this.show_dbDelete.splice(idx, 1); // Remove the corresponding delete icon state
+              this.calcAvg();
+            } else {
+              console.error("Error deleting data:", data.error_msg);
+            }
+            this.show_dbDeleteSpin[idx] = false;
+          })
+          .catch((error) => {
+            console.error("Error:", error);
+            this.show_dbDeleteSpin[idx] = false;
+          });
+      },
+    },
+    mounted() {
+      this.dbRead();
+    },
+  });
+
+  vueApp.mount("#project");
 </script>
