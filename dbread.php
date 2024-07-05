@@ -6,11 +6,7 @@ header("Access-Control-Allow-Origin: *");
 include 'dbconfig.php';
 include 'StatusCRUD.php';
 
-// option to directly create $crudStatus instance 
-// by using jsone_decode function
-//$crudStatus = json_decode('{"type":"read", "data":null, "status":null, "error_msg": null}');
-
-// crudStatus instance creation  using OOP approach
+// crudStatus instance creation using OOP approach
 $crudStatus = new StatusCRUD('read', null, null, null);
 
 try {
@@ -19,17 +15,24 @@ try {
     // set the PDO error mode to exception
     $conn->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
 
-    // prepare sql and bind parameters
-    // ???
-    // ???
-    // ???
+    // prepare sql and execute
+    $stmt = $conn->prepare("SELECT * FROM marks");
+    $stmt->execute();
 
+    // set the resulting array to associative
+    $result = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+    if ($result) {
+        $crudStatus->data = $result;
+        $crudStatus->status = 'success';
+    } else {
+        $crudStatus->status = 'fail';
+        $crudStatus->error_msg = 'No records found';
+    }
 } catch (PDOException $e) {
-    //echo "Connection failed: " . $e->getMessage();
     $crudStatus->status = 'fail';
     $crudStatus->error_msg = $e->getMessage();
 }
 
 echo json_encode($crudStatus);
-
 ?>

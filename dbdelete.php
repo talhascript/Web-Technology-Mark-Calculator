@@ -16,16 +16,8 @@ if (isset($_REQUEST["jsonStr"])) {
   $jsonStr = $_REQUEST["jsonStr"];
   $data = json_decode($jsonStr);
 }
-// debug json data
-//var_dump($data);
-//echo json_encode($data);
-//exit();
 
-// option to directly create $crudStatus instance 
-// by using jsone_decode function
-//$crudStatus = json_decode('{"type":"create", "data":null, "status":null, "error_msg": null}');
-
-// crudStatus instance creation  using OOP approach
+// crudStatus instance creation using OOP approach
 $crudStatus = new StatusCRUD('delete', null, null, null);
 
 if ($data != null) {
@@ -38,14 +30,17 @@ if ($data != null) {
     $conn->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
 
     // prepare sql and bind parameters
-    // ???
-    // ???
-    // ???
+    $stmt = $conn->prepare("DELETE FROM marks WHERE id=:id");
+    $stmt->bindParam(':id', $id);
+
+    foreach ($data as $item) {
+      $id = $item->id;
+      $stmt->execute();
+    }
 
     $crudStatus->status = 'success';
 
   } catch (PDOException $e) {
-    //echo "Connection failed: " . $e->getMessage();
     $crudStatus->status = 'fail';
     $crudStatus->error_msg = $e->getMessage();
   }

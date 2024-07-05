@@ -16,16 +16,8 @@ if (isset($_REQUEST["jsonStr"])) {
   $jsonStr = $_REQUEST["jsonStr"];
   $data = json_decode($jsonStr);
 }
-// debug json data
-//var_dump($data);
-//echo json_encode($data);
-//exit();
 
-// option to directly create $crudStatus instance 
-// by using jsone_decode function
-//$crudStatus = json_decode('{"type":"create", "data":null, "status":null, "error_msg": null}');
-
-// crudStatus instance creation  using OOP approach
+// crudStatus instance creation using OOP approach
 $crudStatus = new StatusCRUD('create', null, null, null);
 
 if ($data != null) {
@@ -38,13 +30,22 @@ if ($data != null) {
     $conn->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
 
     // prepare sql and bind parameters
-    // ???
-    // ???
-    // ???
+    $stmt = $conn->prepare("INSERT INTO marks (name, session, cw, fe) VALUES (:name, :session, :cw, :fe)");
+    $stmt->bindParam(':name', $name);
+    $stmt->bindParam(':session', $session);
+    $stmt->bindParam(':cw', $cw);
+    $stmt->bindParam(':fe', $fe);
+
+    foreach ($data as $item) {
+      $name = $item->name;
+      $session = $item->session;
+      $cw = $item->cw;
+      $fe = $item->fe;
+      $stmt->execute();
+    }
 
     $crudStatus->status = 'success';
   } catch (PDOException $e) {
-    //echo "Connection failed: " . $e->getMessage();
     $crudStatus->status = 'fail';
     $crudStatus->error_msg = $e->getMessage();
   }
