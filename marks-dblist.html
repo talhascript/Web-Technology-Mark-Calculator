@@ -1,0 +1,253 @@
+<html>
+
+<head>
+    <title>SECJ3483 - Project</title>
+    <link rel="stylesheet" href="https://www.w3schools.com/w3css/4/w3.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+    <style>
+        i.fa {
+            cursor: pointer;
+        }
+    </style>
+</head>
+
+<body id="project">
+    <h2>WebTech Final Mark Data Entry</h2>
+
+    <div class="w3-bar w3-grey">
+        <button class="w3-bar-item w3-button" onclick="location.href='marks-form.html';">Marks Entry Form</button>
+        <button class="w3-bar-item w3-button w3-black">Marks DB List</button>
+    </div>
+
+    <div v-show="show_List">
+        <table class="w3-table-all w3-small w3-hoverable">
+            <tr class="w3-blue">
+                <th>Name</th>
+                <th>Session</th>
+                <th class="numeric cw">Coursework (70%)</th>
+                <th class="numeric fe">Final Exam (30%)</th>
+                <th class="numeric total">Total</th>
+                <th class="grade">Grade</th>
+                <th>&nbsp;</th>
+            </tr>
+            <tr class="row_data w3-hover-khaki" v-for="(item, idx) in data">
+                <td class="text name">{{item.name}}</td>
+                <td class="text session">{{item.session}}</td>
+                <td class="numeric cw">{{item.cw}}</td>
+                <td class="numeric fe">{{item.fe}}</td>
+                <td class="numeric total">{{parseInt(item.cw) + parseInt(item.fe)}}</td>
+                <td class="grade">{{getGrade(parseInt(item.cw) + parseInt(item.fe))}}</td>
+                <td class="icon">
+                    <i class="fa fa-edit w3-large w3-text-blue" aria-hidden="true" title="Update"
+                        v-on:click="updateItem.idx=idx; dbUpdate(0)"></i>
+                    &nbsp;
+                    <i class="fa fa-circle-o-notch fa-spin w3-large w3-text-grey" aria-hidden="true"
+                        v-show="show_dbDeleteSpin[idx]"></i>
+                    &nbsp;
+                    <i class="fa fa-close w3-large w3-text-red" aria-hidden="true" title="Delete"
+                        v-show="show_dbDelete[idx]" v-on:click="dbDelete(idx)"></i>
+                </td>
+            </tr>
+            <tr id="row_avg" class="w3-orange">
+                <th colspan="2" style="text-align: center">AVERAGE</th>
+                <th id="avg_cw" class="numeric">{{avg.cw}}</th>
+                <th id="avg_fe" class="numeric">{{avg.fe}}</th>
+                <th id="avg_total" class="numeric">{{avg.total}}</th>
+                <th id="avg_grade" class="grade">{{avg.grade}}</th>
+                <th>
+                </th>
+            </tr>
+        </table>
+    </div>
+
+    <div v-show="show_updateForm">
+        <h3>Update mark info:</h3>
+        <table class="w3-table-all w3-small">
+            <tr class="w3-green">
+                <th>Name</th>
+                <th>Session</th>
+                <th>Coursework (70%)</th>
+                <th>Final Exam (30%)</th>
+                <th>&nbsp;</th>
+            </tr>
+            <tr>
+                <td>
+                    <input type="text" id="in_name" v-model="in_name" class="w3-input">
+                </td>
+                <td>
+                    <input type="text" v-model="in_session" class="w3-input numeric">
+                    <i class="w3-text-red w3-tiny errmsg_in">{{errmsg_session}}</i>
+                </td>
+                <td>
+                    <input type="text" v-model="in_cw" class="w3-input numeric">
+                    <i class="w3-text-red w3-tiny errmsg_in">{{errmsg_cw}}</i>
+                </td>
+                <td>
+                    <input type="text" v-model="in_fe" class="w3-input numeric">
+                    <i class="w3-text-red w3-tiny errmsg_in">{{errmsg_fe}}</i>
+                </td>
+                <td>
+                    <i class="fa fa-circle-o-notch fa-spin w3-large w3-text-grey" aria-hidden="true"
+                       v-show="show_updateSpin"></i>&nbsp;
+                    <button v-show="show_updateBtn" v-on:click="dbUpdate(1)">Update</button>
+                    <button v-on:click="dbUpdate(-1)">Cancel</button>
+                </td>
+            </tr>
+        </table>
+    </div>
+    <pre>
+    Group Members:
+    1. ???
+    2. ???
+    3. ???
+    4. ???
+    5. ???
+    6. ???
+    </pre>
+</body>
+
+</html>
+
+<script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+<script>
+    const vueApp = Vue.createApp({
+        data() {
+            return {
+                show_List: true,
+                data: [],
+                show_dbDeleteSpin: [],
+                show_dbDelete: [],
+                avg: { 'cw': 0, 'fe': 0, 'total': 0, 'grade': 'E' },
+
+                show_updateForm: false, show_updateBtn: true, show_updateSpin: false,
+                updateItem: { id: null, idx: null },
+                in_name: '???', in_session: '???', in_cw: 0, in_fe: 0,
+                errmsg_session: '', errmsg_cw: '', errmsg_fe: '',
+            }
+        },
+
+        watch: {
+            // always make student name in uppercase format
+            in_name(val) {
+                this.in_name = val.toUpperCase();
+            }
+        },
+
+        methods: {
+            // Function to return grade based on total mark
+            // of coursework + final exam
+            getGrade(m) {
+                let marks = [90, 80, 75, 70, 65, 60, 55, 50, 45, 40, 35, 30, 0];
+                let grades = ['A+', 'A', 'A-', 'B+', 'B', 'B-', 'C+', 'C', 'C-', 'D+', 'D', 'D-', 'E'];
+
+                for (let idx = 0; idx < marks.length; idx++) {
+                    if (m >= marks[idx]) {
+                        //console.log(marks[idx]);
+                        return grades[idx];
+                    }
+                }
+
+                return "N/A";
+            },
+
+            // Calculate and set the average of coursework, final exam,
+            // total mark and grade.
+            calcAvg() {
+                // Task 2.7: complete the calcAvg function
+                // ???
+
+            },
+
+            setInput(name, session, cw, fe) {
+                this.in_name = name;
+                this.in_session = session;
+                this.in_cw = cw;
+                this.in_fe = fe;
+            },
+
+            // Function to validate input by user.
+            validateInput() {
+                // Reset all error messages.
+                this.errmsg_session = "";
+                this.errmsg_cw = "";
+                this.errmsg_fe = "";
+
+                let valid_input = 1;
+
+                console.log(`this.in_cw = ${this.in_cw}`);
+
+                if (this.in_name == "" || this.in_session == "" || this.in_cw == "" || this.in_fe == "") {
+                    alert("Please complete all input fields!");
+                    valid_input = 0;
+
+                } else {
+                    if (this.in_fe > 30 || this.in_fe < 0 || isNaN(this.in_fe)) {
+                        this.errmsg_fe = "Invalid value range of final exam mark!";
+                        valid_input = 0;
+                    }
+
+                    if (this.in_cw > 70 || this.in_cw < 0 || isNaN(this.in_cw)) {
+                        this.errmsg_cw = "Invalid value range of coursework mark!";
+                        valid_input = 0;
+                    }
+
+                    if (!this.in_session.match(/^\d{8}\-\d{1}$/g)) {
+                        this.errmsg_session = "Invalid input pattern of session field!";
+                        valid_input = 0;
+                    }
+                }
+
+                return valid_input;
+            },
+
+
+            // Function to read and list mark info from DB table
+            dbRead(phase) {
+                // Task 2.8: complete the dbRead function
+                // ???
+
+            },
+
+            // Function to update mark info
+            dbUpdate(phase) {
+                console.log(this.updateItem.id);
+                console.log(this.updateItem.idx);
+
+                let idx = this.updateItem.idx;
+
+                // Task 2.9: complete the dbUpdate function
+                if (phase == 0) {
+                    // ???
+
+                } else {
+                    if (phase == 1) {
+                        if (this.validateInput()) {
+                            this.show_updateSpin = true;
+                            this.show_updateBtn = false;
+                            // ???
+                        }
+
+                    } else {
+                        this.show_List = true;
+                        this.show_updateForm = false;
+                    }
+                }
+            },
+
+            // function to delete mark info from DB table
+            dbDelete(idx) {
+                this.show_dbDeleteSpin[idx] = true;
+                this.show_dbDelete[idx] = false;
+
+                // Task 2.10: complete the dbDelete function
+                // ???
+            }
+        },
+        mounted() {
+            this.dbRead();
+        }
+    });
+
+    vueApp.mount("#project");
+
+</script>
