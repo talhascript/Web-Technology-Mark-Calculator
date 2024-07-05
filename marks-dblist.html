@@ -142,7 +142,6 @@
 
                 for (let idx = 0; idx < marks.length; idx++) {
                     if (m >= marks[idx]) {
-                        //console.log(marks[idx]);
                         return grades[idx];
                     }
                 }
@@ -153,9 +152,15 @@
             // Calculate and set the average of coursework, final exam,
             // total mark and grade.
             calcAvg() {
-                // Task 2.7: complete the calcAvg function
-                // ???
-
+                let total_cw = 0, total_fe = 0, count = this.data.length;
+                for (let i = 0; i < count; i++) {
+                    total_cw += parseInt(this.data[i].cw);
+                    total_fe += parseInt(this.data[i].fe);
+                }
+                this.avg.cw = (total_cw / count).toFixed(2);
+                this.avg.fe = (total_fe / count).toFixed(2);
+                this.avg.total = (parseInt(this.avg.cw) + parseInt(this.avg.fe)).toFixed(2);
+                this.avg.grade = this.getGrade(parseInt(this.avg.total));
             },
 
             setInput(name, session, cw, fe) {
@@ -167,19 +172,15 @@
 
             // Function to validate input by user.
             validateInput() {
-                // Reset all error messages.
                 this.errmsg_session = "";
                 this.errmsg_cw = "";
                 this.errmsg_fe = "";
 
                 let valid_input = 1;
 
-                console.log(`this.in_cw = ${this.in_cw}`);
-
                 if (this.in_name == "" || this.in_session == "" || this.in_cw == "" || this.in_fe == "") {
                     alert("Please complete all input fields!");
                     valid_input = 0;
-
                 } else {
                     if (this.in_fe > 30 || this.in_fe < 0 || isNaN(this.in_fe)) {
                         this.errmsg_fe = "Invalid value range of final exam mark!";
@@ -200,33 +201,70 @@
                 return valid_input;
             },
 
-
             // Function to read and list mark info from DB table
-            dbRead(phase) {
-                // Task 2.8: complete the dbRead function
-                // ???
-
+            dbRead() {
+                fetch('http://localhost/webtech/project/dbread.php')
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.status === 'success') {
+                            this.data = data.data;
+                            this.calcAvg();
+                            this.show_dbDelete = new Array(this.data.length).fill(true);
+                        } else {
+                            console.error('Error fetching data:', data.error_msg);
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error:', error);
+                    });
             },
 
             // Function to update mark info
             dbUpdate(phase) {
-                console.log(this.updateItem.id);
-                console.log(this.updateItem.idx);
-
                 let idx = this.updateItem.idx;
 
-                // Task 2.9: complete the dbUpdate function
                 if (phase == 0) {
-                    // ???
-
+                    this.show_List = false;
+                    this.show_updateForm = true;
+                    this.setInput(this.data[idx].name, this.data[idx].session, this.data[idx].cw, this.data[idx].fe);
+                    this.updateItem.id = this.data[idx].id;
                 } else {
                     if (phase == 1) {
                         if (this.validateInput()) {
                             this.show_updateSpin = true;
                             this.show_updateBtn = false;
-                            // ???
-                        }
 
+                            const updateData = [{
+                                id: this.updateItem.id,
+                                name: this.in_name,
+                                session: this.in_session,
+                                cw: this.in_cw,
+                                fe: this.in_fe
+                            }];
+
+                            fetch(`http://localhost/webtech/project/dbupdate.php?jsonStr=${encodeURIComponent(JSON.stringify(updateData))}`)
+                                .then(response => response.json())
+                                .then(data => {
+                                    if (data.status === 'success') {
+                                        this.data[idx].name = this.in_name;
+                                        this.data[idx].session = this.in_session;
+                                        this.data[idx].cw = this.in_cw;
+                                        this.data[idx].fe = this.in_fe;
+                                        this.calcAvg();
+                                    } else {
+                                        console.error('Error updating data:', data.error_msg);
+                                    }
+                                    this.show_updateSpin = false;
+                                    this.show_updateBtn = true;
+                                    this.show_List = true;
+                                    this.show_updateForm = false;
+                                })
+                                .catch(error => {
+                                    console.error('Error:', error);
+                                    this.show_updateSpin = false;
+                                    this.show_updateBtn = true;
+                                });
+                        }
                     } else {
                         this.show_List = true;
                         this.show_updateForm = false;
@@ -239,8 +277,23 @@
                 this.show_dbDeleteSpin[idx] = true;
                 this.show_dbDelete[idx] = false;
 
-                // Task 2.10: complete the dbDelete function
-                // ???
+                const deleteData = [{ id: this.data[idx].id }];
+                fetch(`http://localhost/webtech/project/dbdelete.php?jsonStr=${encodeURIComponent(JSON.stringify(deleteData))}`)
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.status === 'success') {
+                            this.data.splice(idx, 1);
+                            this.show_dbDelete.splice(idx, 1); // Remove the corresponding delete icon state
+                            this.calcAvg();
+                        } else {
+                            console.error('Error deleting data:', data.error_msg);
+                        }
+                        this.show_dbDeleteSpin[idx] = false;
+                    })
+                    .catch(error => {
+                        console.error('Error:', error);
+                        this.show_dbDeleteSpin[idx] = false;
+                    });
             }
         },
         mounted() {
